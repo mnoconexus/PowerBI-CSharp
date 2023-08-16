@@ -1,0 +1,42 @@
+name: Trigger auto deployment for cx-d-document-api-linux
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ master ]
+    paths:
+    - '**'
+    - '.github/workflows/cx-d-document-api-linux-AutoDeployTrigger-7e8a4e1c-2e09-451b-b667-81ccf5b9bc5a.yml'
+
+  # Allow mannually trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.CXDDOCUMENTAPILINUX_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: cxsharedacr.azurecr.io
+          registryUsername: ${{ secrets.CXDDOCUMENTAPILINUX_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.CXDDOCUMENTAPILINUX_REGISTRY_PASSWORD }}
+          containerAppName: cx-d-document-api-linux
+          resourceGroup: cx-d-api-internal-rg
+          imageToBuild: cxsharedacr.azurecr.io/develop/cx-document-linux-api:${{ github.sha }}
+          
+
+     
+
